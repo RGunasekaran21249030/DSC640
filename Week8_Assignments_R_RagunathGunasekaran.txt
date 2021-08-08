@@ -1,0 +1,539 @@
+library(rgdal)
+> library(raster)
+> library(ggplot2)
+> library(rgeos)
+> library(mapview)
+> library(leaflet)
+> library(broom) 
+> # download the data 
+> download.file("http://www.naturalearthdata.com/http//www.naturalearthdata.com/download/10m/physical/ne_10m_coastline.zip", 
++               destfile = 'coastlines.zip')
+trying URL 'http://www.naturalearthdata.com/http//www.naturalearthdata.com/download/10m/physical/ne_10m_coastline.zip'
+Content type 'application/zip' length 3067661 bytes (2.9 MB)
+==================================================
+downloaded 2.9 MB
+
+> 
+> # unzip the file
+> unzip(zipfile = "coastlines.zip", 
++       exdir = 'ne-coastlines-10m')
+> #############################################  Spatial Charts
+> 
+> coastlines <- readOGR("ne-coastlines-10m/ne_10m_coastline.shp")
+OGR data source with driver: ESRI Shapefile 
+Source: "/cloud/project/ne-coastlines-10m/ne_10m_coastline.shp", layer: "ne_10m_coastline"
+with 4133 features
+It has 3 fields
+Integer64 fields read as strings:  scalerank 
+> 
+> class(coastlines)
+[1] "SpatialLinesDataFrame"
+attr(,"package")
+[1] "sp"
+> 
+> 
+> plot(coastlines, 
++      main = "Global Coastlines")
+> 
+> 
+> 
+> # simplify geometry
+> coastlines_simp <- gSimplify(coastlines, 
++                              tol = 3, 
++                              topologyPreserve = TRUE)
+> 
+> plot(coastlines_simp,
++      main = "World Map with boundaries")
+> 
+> # Load Airport Data
+> airports <- read.delim("https://slcladal.github.io/data/airports.txt", sep = "\t", header = T) %>%
++   dplyr::mutate(ID = as.character(ID))
+> 
+> airports
+     ID                                                        Name
+1     1                                              Goroka Airport
+2     2                                              Madang Airport
+3     3                                Mount Hagen Kagamuga Airport
+4     4                                              Nadzab Airport
+5     5                 Port Moresby Jacksons International Airport
+6     6                                 Wewak International Airport
+7     7                                          Narsarsuaq Airport
+8     8                                     Godthaab / Nuuk Airport
+9     9                                       Kangerlussuaq Airport
+10   10                                              Thule Air Base
+11   11                                            Akureyri Airport
+12   12                                         Egilsstaðir Airport
+13   13                                        Hornafjörður Airport
+14   14                                             Húsavík Airport
+15   15                                          Ísafjörður Airport
+16   16                              Keflavik International Airport
+17   17                                      Patreksfjörður Airport
+18   18                                           Reykjavik Airport
+19   19                                        Siglufjörður Airport
+20   20                                      Vestmannaeyjar Airport
+21   21                                     Sault Ste Marie Airport
+22   22                              Winnipeg / St. Andrews Airport
+23   23                           Halifax / CFB Shearwater Heliport
+24   24                                         St. Anthony Airport
+25   25                                 Tofino / Long Beach Airport
+26   26                                            Kugaaruk Airport
+27   27                                         Baie Comeau Airport
+28   28                                              CFB Bagotville
+29   29                                          Baker Lake Airport
+30   30                                      Campbell River Airport
+31   31                                   Brandon Municipal Airport
+32   32                                       Cambridge Bay Airport
+33   33                                             Nanaimo Airport
+34   34                    Castlegar/West Kootenay Regional Airport
+35   35                                           Miramichi Airport
+36   36                                              Charlo Airport
+37   37                                           Kugluktuk Airport
+38   38                                          Coronation Airport
+39   39                                          Chilliwack Airport
+40   40                                         Clyde River Airport
+41   41                                       Coral Harbour Airport
+42   42                                         Dawson City Airport
+43   43                                             Burwash Airport
+44   44                                           Princeton Airport
+45   45                                           Deer Lake Airport
+46   46                                          Dease Lake Airport
+47   47                                      Dauphin Barker Airport
+48   48                                        Dawson Creek Airport
+49   49                              Edmonton International Airport
+50   50                                              Arviat Airport
+51   51                                             Estevan Airport
+52   52                                               Edson Airport
+53   53                                              Eureka Airport
+54   54                                   Inuvik Mike Zubko Airport
+55   55                                             Iqaluit Airport
+56   56                                         Fredericton Airport
+57   57                                         Forestville Airport
+58   58                                           Flin Flon Airport
+59   59                                     Fort Resolution Airport
+60   60                                        Fort Simpson Airport
+61   61                              Kingston Norman Rogers Airport
+62   62                                   La Grande Rivière Airport
+63   63                              Gaspé (Michel-Pouliot) Airport
+64   64                       Geraldton Greenstone Regional Airport
+65   65                                Îles-de-la-Madeleine Airport
+66   66                                          Hudson Bay Airport
+67   67                                     Dryden Regional Airport
+68   68                                   Ulukhaktok Holman Airport
+69   69                                          Gjoa Haven Airport
+70   70                John C. Munro Hamilton International Airport
+71   71                             Montréal / Saint-Hubert Airport
+72   72                           Hay River / Merlyn Carter Airport
+73   73                   Halifax / Stanfield International Airport
+74   74                                  Atikokan Municipal Airport
+75   75                                          Pond Inlet Airport
+76   76                                             St Jean Airport
+77   77                                        Stephenville Airport
+78   78                                            Kamloops Airport
+79   79                                            Waterloo Airport
+80   80                                       Schefferville Airport
+81   81                                          Kindersley Airport
+82   82                               Buttonville Municipal Airport
+83   83                                            Chapleau Airport
+84   84                                         Meadow Lake Airport
+85   85                                        Lloydminster Airport
+86   86                                               Alert Airport
+87   87                               Kelowna International Airport
+88   88                                                Mayo Airport
+89   89             Moose Jaw Air Vice Marshal C. M. McEwen Airport
+90   90                                       Fort McMurray Airport
+91   91                                            Moosonee Airport
+92   92                                            Maniwaki Airport
+93   93                    Montreal International (Mirabel) Airport
+94   94                                          Natashquan Airport
+95   95                                   Ottawa / Gatineau Airport
+96   96                                            Matagami Airport
+97   97                                            Old Crow Airport
+98   98                                               CFB Cold Lake
+99   99                                          High Level Airport
+100 100              Ottawa Macdonald-Cartier International Airport
+101 101                                   Prince Albert Glass Field
+102 102                                         Peace River Airport
+103 103                                           Southport Airport
+104 104                                        Pitt Meadows Airport
+105 105                                         Pickle Lake Airport
+106 106                                         Port Menier Airport
+107 107                                        Peterborough Airport
+108 108                                       Prince Rupert Airport
+109 109                                      Fort Chipewyan Airport
+110 110                                             Muskoka Airport
+111 111                    Quebec Jean Lesage International Airport
+112 112                                   Red Deer Regional Airport
+113 113                                             Windsor Airport
+114 114                                         Watson Lake Airport
+115 115                                              Kenora Airport
+116 116                                   Lethbridge County Airport
+117 117                       Greater Moncton International Airport
+118 119                                               Comox Airport
+119 120                                Regina International Airport
+120 121                                         Thunder Bay Airport
+121 122                                      Grande Prairie Airport
+122 123                                   Yorkton Municipal Airport
+123 124                                    North Battleford Airport
+124 125                                Gander International Airport
+125 126                       Sydney / J.A. Douglas McCurdy Airport
+126 127                                             Quesnel Airport
+127 128                                        Resolute Bay Airport
+128 129                                     Rivière-du-Loup Airport
+129 130                                            Roberval Airport
+130 131                                Rocky Mountain House Airport
+131 132                                        Rankin Inlet Airport
+132 133                                             Sudbury Airport
+133 134                                          Sherbrooke Airport
+134 135                                          Saint John Airport
+135 136                                          Fort Smith Airport
+136 137                                           Nanisivik Airport
+137 138                                          Summerside Airport
+138 139       Sachs Harbour (David Nasogaluak Jr. Saaryuaq) Airport
+139 140                                         Cape Dorset Airport
+140 141                                            Thompson Airport
+141 142                                                 CFB Trenton
+142 143                                     Timmins/Victor M. Power
+143 144                    Billy Bishop Toronto City Centre Airport
+144 145                                         Tuktoyaktuk Airport
+145 146     Montreal / Pierre Elliott Trudeau International Airport
+146 147                                         Repulse Bay Airport
+147 148                                          Hall Beach Airport
+148 149                                       Rouyn Noranda Airport
+149 150                                            La Ronge Airport
+150 151                                           Vermilion Airport
+151 152                                        Qikiqtarjuaq Airport
+152 153                                            Val-d'Or Airport
+153 154                                            Kuujjuaq Airport
+154 155                                        Norman Wells Airport
+155 156                             Vancouver International Airport
+156 157                                     Buffalo Narrows Airport
+157 158                                             Wiarton Airport
+158 159                                            Petawawa Airport
+159 160 Winnipeg / James Armstrong Richardson International Airport
+160 161                                              Wabush Airport
+161 162                                       Williams Lake Airport
+162 163                                             Wrigley Airport
+163 164            Cranbrook/Canadian Rockies International Airport
+164 165             Edmonton City Centre (Blatchford Field) Airport
+165 166         Saskatoon John G. Diefenbaker International Airport
+166 167                                        Medicine Hat Airport
+                    City          Country  Latitude  Longitude
+1                 Goroka Papua New Guinea -6.081690  145.39200
+2                 Madang Papua New Guinea -5.207080  145.78900
+3            Mount Hagen Papua New Guinea -5.826790  144.29601
+4                 Nadzab Papua New Guinea -6.569803  146.72598
+5           Port Moresby Papua New Guinea -9.443380  147.22000
+6                  Wewak Papua New Guinea -3.583830  143.66901
+7           Narssarssuaq        Greenland 61.160500  -45.42600
+8               Godthaab        Greenland 64.190903  -51.67810
+9            Sondrestrom        Greenland 67.012222  -50.71160
+10                 Thule        Greenland 76.531197  -68.70320
+11              Akureyri          Iceland 65.660004  -18.07270
+12           Egilsstadir          Iceland 65.283302  -14.40140
+13                  Hofn          Iceland 64.295601  -15.22720
+14               Husavik          Iceland 65.952301  -17.42600
+15            Isafjordur          Iceland 66.058098  -23.13530
+16              Keflavik          Iceland 63.985001  -22.60560
+17        Patreksfjordur          Iceland 65.555801  -23.96500
+18             Reykjavik          Iceland 64.129997  -21.94060
+19          Siglufjordur          Iceland 66.133301  -18.91670
+20        Vestmannaeyjar          Iceland 63.424301  -20.27890
+21    Sault Sainte Marie           Canada 46.485001  -84.50940
+22              Winnipeg           Canada 50.056400  -97.03250
+23               Halifax           Canada 44.639702  -63.49940
+24           St. Anthony           Canada 51.391899  -56.08310
+25                Tofino           Canada 49.079833 -125.77558
+26             Pelly Bay           Canada 68.534401  -89.80810
+27           Baie Comeau           Canada 49.132500  -68.20440
+28            Bagotville           Canada 48.330601  -70.99640
+29            Baker Lake           Canada 64.298897  -96.07780
+30        Campbell River           Canada 49.950802 -125.27100
+31               Brandon           Canada 49.910000  -99.95190
+32         Cambridge Bay           Canada 69.108101 -105.13800
+33               Nanaimo           Canada 49.054970 -123.86986
+34             Castlegar           Canada 49.296398 -117.63200
+35               Chatham           Canada 47.007801  -65.44920
+36                Charlo           Canada 47.990799  -66.33030
+37            Coppermine           Canada 67.816704 -115.14400
+38            Coronation           Canada 52.075001 -111.44500
+39            Chilliwack           Canada 49.152802 -121.93900
+40           Clyde River           Canada 70.486099  -68.51670
+41         Coral Harbour           Canada 64.193298  -83.35940
+42                Dawson           Canada 64.043098 -139.12801
+43               Burwash           Canada 61.371101 -139.04100
+44             Princeton           Canada 49.468102 -120.51100
+45             Deer Lake           Canada 49.210800  -57.39140
+46            Dease Lake           Canada 58.422199 -130.03200
+47               Dauphin           Canada 51.100800 -100.05200
+48          Dawson Creek           Canada 55.742298 -120.18300
+49              Edmonton           Canada 53.309700 -113.58000
+50          Eskimo Point           Canada 61.094200  -94.07080
+51               Estevan           Canada 49.210300 -102.96600
+52                 Edson           Canada 53.578899 -116.46500
+53                Eureka           Canada 79.994698  -85.81420
+54                Inuvik           Canada 68.304199 -133.48300
+55               Iqaluit           Canada 63.756402  -68.55580
+56           Fredericton           Canada 45.868900  -66.53720
+57           Forestville           Canada 48.746101  -69.09720
+58             Flin Flon           Canada 54.678101 -101.68200
+59       Fort Resolution           Canada 61.180801 -113.69000
+60          Fort Simpson           Canada 61.760201 -121.23700
+61              Kingston           Canada 44.225300  -76.59690
+62     La Grande Riviere           Canada 53.625301  -77.70420
+63                 Gaspe           Canada 48.775299  -64.47860
+64             Geraldton           Canada 49.778301  -86.93940
+65  Iles De La Madeleine           Canada 47.424702  -61.77810
+66            Hudson Bay           Canada 52.816700 -102.31100
+67                Dryden           Canada 49.831699  -92.74420
+68         Holman Island           Canada 70.762802 -117.80600
+69            Gjoa Haven           Canada 68.635597  -95.84970
+70              Hamilton           Canada 43.173599  -79.93500
+71              Montreal           Canada 45.517502  -73.41690
+72             Hay River           Canada 60.839699 -115.78300
+73               Halifax           Canada 44.880798  -63.50860
+74              Atikokan           Canada 48.773899  -91.63860
+75            Pond Inlet           Canada 72.683296  -77.96670
+76              St. Jean           Canada 45.294399  -73.28110
+77          Stephenville           Canada 48.544201  -58.55000
+78              Kamloops           Canada 50.702202 -120.44400
+79              Waterloo           Canada 43.460800  -80.37860
+80         Schefferville           Canada 54.805302  -66.80530
+81            Kindersley           Canada 51.517502 -109.18100
+82               Toronto           Canada 43.862202  -79.37000
+83              Chapleau           Canada 47.820000  -83.34670
+84           Meadow Lake           Canada 54.125301 -108.52300
+85          Lloydminster           Canada 53.309200 -110.07300
+86                 Alert           Canada 82.517799  -62.28060
+87               Kelowna           Canada 49.956100 -119.37800
+88                  Mayo           Canada 63.616402 -135.86800
+89             Moose Jaw           Canada 50.330299 -105.55900
+90         Fort Mcmurray           Canada 56.653301 -111.22200
+91              Moosonee           Canada 51.291100  -80.60780
+92              Maniwaki           Canada 46.272800  -75.99060
+93              Montreal           Canada 45.679501  -74.03870
+94            Natashquan           Canada 50.189999  -61.78920
+95              Gatineau           Canada 45.521702  -75.56360
+96              Matagami           Canada 49.761700  -77.80280
+97              Old Crow           Canada 67.570602 -139.83900
+98             Cold Lake           Canada 54.404999 -110.27900
+99            High Level           Canada 58.621399 -117.16500
+100               Ottawa           Canada 45.322498  -75.66920
+101        Prince Albert           Canada 53.214199 -105.67300
+102          Peace River           Canada 56.226898 -117.44700
+103   Portage-la-prairie           Canada 49.903099  -98.27382
+104         Pitt Meadows           Canada 49.216099 -122.71000
+105          Pickle Lake           Canada 51.446400  -90.21420
+106          Port Menier           Canada 49.836399  -64.28860
+107         Peterborough           Canada 44.230000  -78.36330
+108        Prince Pupert           Canada 54.286098 -130.44501
+109       Fort Chipewyan           Canada 58.767200 -111.11700
+110              Muskoka           Canada 44.974701  -79.30330
+111               Quebec           Canada 46.791100  -71.39330
+112  Red Deer Industrial           Canada 52.182201 -113.89400
+113              Windsor           Canada 42.275600  -82.95560
+114          Watson Lake           Canada 60.116402 -128.82201
+115               Kenora           Canada 49.788300  -94.36310
+116           Lethbridge           Canada 49.630299 -112.80000
+117              Moncton           Canada 46.112202  -64.67860
+118                Comox           Canada 49.710800 -124.88700
+119               Regina           Canada 50.431900 -104.66600
+120          Thunder Bay           Canada 48.371899  -89.32390
+121       Grande Prairie           Canada 55.179699 -118.88500
+122              Yorkton           Canada 51.264702 -102.46200
+123     North Battleford           Canada 52.769199 -108.24400
+124               Gander           Canada 48.936901  -54.56810
+125               Sydney           Canada 46.161400  -60.04780
+126              Quesnel           Canada 53.026100 -122.51000
+127             Resolute           Canada 74.716904  -94.96940
+128      Riviere Du Loup           Canada 47.764400  -69.58470
+129             Roberval           Canada 48.520000  -72.26560
+130 Rocky Mountain House           Canada 52.429699 -114.90400
+131         Rankin Inlet           Canada 62.811401  -92.11580
+132              Sudbury           Canada 46.625000  -80.79890
+133           Sherbrooke           Canada 45.438599  -71.69140
+134             St. John           Canada 45.316101  -65.89030
+135           Fort Smith           Canada 60.020302 -111.96200
+136            Nanisivik           Canada 72.982201  -84.61360
+137           Summerside           Canada 46.440601  -63.83360
+138        Sachs Harbour           Canada 71.993896 -125.24300
+139          Cape Dorset           Canada 64.230003  -76.52670
+140             Thompson           Canada 55.801102  -97.86420
+141              Trenton           Canada 44.118900  -77.52810
+142              Timmins           Canada 48.569698  -81.37670
+143              Toronto           Canada 43.627499  -79.39620
+144          Tuktoyaktuk           Canada 69.433296 -133.02600
+145             Montreal           Canada 45.470600  -73.74080
+146          Repulse Bay           Canada 66.521400  -86.22470
+147           Hall Beach           Canada 68.776100  -81.24250
+148                Rouyn           Canada 48.206100  -78.83560
+149             La Ronge           Canada 55.151402 -105.26200
+150           Vermillion           Canada 53.355801 -110.82400
+151     Broughton Island           Canada 67.545799  -64.03140
+152             Val D'or           Canada 48.053299  -77.78280
+153             Quujjuaq           Canada 58.096100  -68.42690
+154         Norman Wells           Canada 65.281601 -126.79800
+155            Vancouver           Canada 49.193901 -123.18400
+156      Buffalo Narrows           Canada 55.841900 -108.41800
+157              Wiarton           Canada 44.745800  -81.10720
+158             Petawawa           Canada 45.952202  -77.31920
+159             Winnipeg           Canada 49.910000  -97.23990
+160               Wabush           Canada 52.921902  -66.86440
+161        Williams Lake           Canada 52.183102 -122.05400
+162              Wrigley           Canada 63.209400 -123.43700
+163            Cranbrook           Canada 49.610802 -115.78200
+164             Edmonton           Canada 53.572498 -113.52100
+165            Saskatoon           Canada 52.170799 -106.70000
+166         Medicine Hat           Canada 50.018902 -110.72100
+ [ reached 'max' / getOption("max.print") -- omitted 7532 rows ]
+> 
+> # plot data on world map with Airport Data
+> plot(worldmap, xlim = c(-80, 160), ylim = c(-50, 100), 
++      asp = 1, bg = "lightblue", col = "black", fill = T)
+Error in h(simpleError(msg, call)) : 
+  error in evaluating the argument 'x' in selecting a method for function 'plot': object 'worldmap' not found
+> 
+> 
+> # add points
+> points(airports$Longitude, airports$Latitude, 
++        col = "red", cex = .01)
+> ############################################# Contour Charts
+> install.packages("ContourFunctions")
+Error in install.packages : Updating loaded packages
+> 
+> library(ContourFunctions)
+> a <- b <- seq(-4*pi, 4*pi, len = 27)
+> 
+> r <- sqrt(outer(a^2, b^2, "+"))
+> 
+> cf_grid(a, b, cos(r^2)*exp(-r/(2*pi)))
+
+Restarting R session...
+
+Loading required package: sp
+> install.packages("ContourFunctions")
+Installing package into ‘/home/rstudio-user/R/x86_64-pc-linux-gnu-library/4.0’
+(as ‘lib’ is unspecified)
+trying URL 'http://package-proxy/focal/src/contrib/ContourFunctions_0.1.1.tar.gz'
+Content type 'application/x-tar' length 461572 bytes (450 KB)
+==================================================
+downloaded 450 KB
+
+* installing *binary* package ‘ContourFunctions’ ...
+* DONE (ContourFunctions)
+
+The downloaded source packages are in
+	‘/tmp/RtmpbjFJMd/downloaded_packages’
+> ############################################# Heat Maps
+> # Referring mtcars data set
+> mtcars
+                     mpg cyl  disp  hp drat    wt  qsec vs am gear carb
+Mazda RX4           21.0   6 160.0 110 3.90 2.620 16.46  0  1    4    4
+Mazda RX4 Wag       21.0   6 160.0 110 3.90 2.875 17.02  0  1    4    4
+Datsun 710          22.8   4 108.0  93 3.85 2.320 18.61  1  1    4    1
+Hornet 4 Drive      21.4   6 258.0 110 3.08 3.215 19.44  1  0    3    1
+Hornet Sportabout   18.7   8 360.0 175 3.15 3.440 17.02  0  0    3    2
+Valiant             18.1   6 225.0 105 2.76 3.460 20.22  1  0    3    1
+Duster 360          14.3   8 360.0 245 3.21 3.570 15.84  0  0    3    4
+Merc 240D           24.4   4 146.7  62 3.69 3.190 20.00  1  0    4    2
+Merc 230            22.8   4 140.8  95 3.92 3.150 22.90  1  0    4    2
+Merc 280            19.2   6 167.6 123 3.92 3.440 18.30  1  0    4    4
+Merc 280C           17.8   6 167.6 123 3.92 3.440 18.90  1  0    4    4
+Merc 450SE          16.4   8 275.8 180 3.07 4.070 17.40  0  0    3    3
+Merc 450SL          17.3   8 275.8 180 3.07 3.730 17.60  0  0    3    3
+Merc 450SLC         15.2   8 275.8 180 3.07 3.780 18.00  0  0    3    3
+Cadillac Fleetwood  10.4   8 472.0 205 2.93 5.250 17.98  0  0    3    4
+Lincoln Continental 10.4   8 460.0 215 3.00 5.424 17.82  0  0    3    4
+Chrysler Imperial   14.7   8 440.0 230 3.23 5.345 17.42  0  0    3    4
+Fiat 128            32.4   4  78.7  66 4.08 2.200 19.47  1  1    4    1
+Honda Civic         30.4   4  75.7  52 4.93 1.615 18.52  1  1    4    2
+Toyota Corolla      33.9   4  71.1  65 4.22 1.835 19.90  1  1    4    1
+Toyota Corona       21.5   4 120.1  97 3.70 2.465 20.01  1  0    3    1
+Dodge Challenger    15.5   8 318.0 150 2.76 3.520 16.87  0  0    3    2
+AMC Javelin         15.2   8 304.0 150 3.15 3.435 17.30  0  0    3    2
+Camaro Z28          13.3   8 350.0 245 3.73 3.840 15.41  0  0    3    4
+Pontiac Firebird    19.2   8 400.0 175 3.08 3.845 17.05  0  0    3    2
+Fiat X1-9           27.3   4  79.0  66 4.08 1.935 18.90  1  1    4    1
+Porsche 914-2       26.0   4 120.3  91 4.43 2.140 16.70  0  1    5    2
+Lotus Europa        30.4   4  95.1 113 3.77 1.513 16.90  1  1    5    2
+Ford Pantera L      15.8   8 351.0 264 4.22 3.170 14.50  0  1    5    4
+Ferrari Dino        19.7   6 145.0 175 3.62 2.770 15.50  0  1    5    6
+Maserati Bora       15.0   8 301.0 335 3.54 3.570 14.60  0  1    5    8
+Volvo 142E          21.4   4 121.0 109 4.11 2.780 18.60  1  1    4    2
+> 
+> # Converting us matrics
+> mtcars_df <- as.matrix(mtcars)
+> mtcars_df
+                     mpg cyl  disp  hp drat    wt  qsec vs am gear carb
+Mazda RX4           21.0   6 160.0 110 3.90 2.620 16.46  0  1    4    4
+Mazda RX4 Wag       21.0   6 160.0 110 3.90 2.875 17.02  0  1    4    4
+Datsun 710          22.8   4 108.0  93 3.85 2.320 18.61  1  1    4    1
+Hornet 4 Drive      21.4   6 258.0 110 3.08 3.215 19.44  1  0    3    1
+Hornet Sportabout   18.7   8 360.0 175 3.15 3.440 17.02  0  0    3    2
+Valiant             18.1   6 225.0 105 2.76 3.460 20.22  1  0    3    1
+Duster 360          14.3   8 360.0 245 3.21 3.570 15.84  0  0    3    4
+Merc 240D           24.4   4 146.7  62 3.69 3.190 20.00  1  0    4    2
+Merc 230            22.8   4 140.8  95 3.92 3.150 22.90  1  0    4    2
+Merc 280            19.2   6 167.6 123 3.92 3.440 18.30  1  0    4    4
+Merc 280C           17.8   6 167.6 123 3.92 3.440 18.90  1  0    4    4
+Merc 450SE          16.4   8 275.8 180 3.07 4.070 17.40  0  0    3    3
+Merc 450SL          17.3   8 275.8 180 3.07 3.730 17.60  0  0    3    3
+Merc 450SLC         15.2   8 275.8 180 3.07 3.780 18.00  0  0    3    3
+Cadillac Fleetwood  10.4   8 472.0 205 2.93 5.250 17.98  0  0    3    4
+Lincoln Continental 10.4   8 460.0 215 3.00 5.424 17.82  0  0    3    4
+Chrysler Imperial   14.7   8 440.0 230 3.23 5.345 17.42  0  0    3    4
+Fiat 128            32.4   4  78.7  66 4.08 2.200 19.47  1  1    4    1
+Honda Civic         30.4   4  75.7  52 4.93 1.615 18.52  1  1    4    2
+Toyota Corolla      33.9   4  71.1  65 4.22 1.835 19.90  1  1    4    1
+Toyota Corona       21.5   4 120.1  97 3.70 2.465 20.01  1  0    3    1
+Dodge Challenger    15.5   8 318.0 150 2.76 3.520 16.87  0  0    3    2
+AMC Javelin         15.2   8 304.0 150 3.15 3.435 17.30  0  0    3    2
+Camaro Z28          13.3   8 350.0 245 3.73 3.840 15.41  0  0    3    4
+Pontiac Firebird    19.2   8 400.0 175 3.08 3.845 17.05  0  0    3    2
+Fiat X1-9           27.3   4  79.0  66 4.08 1.935 18.90  1  1    4    1
+Porsche 914-2       26.0   4 120.3  91 4.43 2.140 16.70  0  1    5    2
+Lotus Europa        30.4   4  95.1 113 3.77 1.513 16.90  1  1    5    2
+Ford Pantera L      15.8   8 351.0 264 4.22 3.170 14.50  0  1    5    4
+Ferrari Dino        19.7   6 145.0 175 3.62 2.770 15.50  0  1    5    6
+Maserati Bora       15.0   8 301.0 335 3.54 3.570 14.60  0  1    5    8
+Volvo 142E          21.4   4 121.0 109 4.11 2.780 18.60  1  1    4    2
+> 
+> heatmap(mtcars_df)
+Error in plot.new() : figure margins too large
+> # Converting us matrics
+> mtcars_df <- as.matrix(mtcars)
+> mtcars_df
+                     mpg cyl  disp  hp drat    wt  qsec vs am gear carb
+Mazda RX4           21.0   6 160.0 110 3.90 2.620 16.46  0  1    4    4
+Mazda RX4 Wag       21.0   6 160.0 110 3.90 2.875 17.02  0  1    4    4
+Datsun 710          22.8   4 108.0  93 3.85 2.320 18.61  1  1    4    1
+Hornet 4 Drive      21.4   6 258.0 110 3.08 3.215 19.44  1  0    3    1
+Hornet Sportabout   18.7   8 360.0 175 3.15 3.440 17.02  0  0    3    2
+Valiant             18.1   6 225.0 105 2.76 3.460 20.22  1  0    3    1
+Duster 360          14.3   8 360.0 245 3.21 3.570 15.84  0  0    3    4
+Merc 240D           24.4   4 146.7  62 3.69 3.190 20.00  1  0    4    2
+Merc 230            22.8   4 140.8  95 3.92 3.150 22.90  1  0    4    2
+Merc 280            19.2   6 167.6 123 3.92 3.440 18.30  1  0    4    4
+Merc 280C           17.8   6 167.6 123 3.92 3.440 18.90  1  0    4    4
+Merc 450SE          16.4   8 275.8 180 3.07 4.070 17.40  0  0    3    3
+Merc 450SL          17.3   8 275.8 180 3.07 3.730 17.60  0  0    3    3
+Merc 450SLC         15.2   8 275.8 180 3.07 3.780 18.00  0  0    3    3
+Cadillac Fleetwood  10.4   8 472.0 205 2.93 5.250 17.98  0  0    3    4
+Lincoln Continental 10.4   8 460.0 215 3.00 5.424 17.82  0  0    3    4
+Chrysler Imperial   14.7   8 440.0 230 3.23 5.345 17.42  0  0    3    4
+Fiat 128            32.4   4  78.7  66 4.08 2.200 19.47  1  1    4    1
+Honda Civic         30.4   4  75.7  52 4.93 1.615 18.52  1  1    4    2
+Toyota Corolla      33.9   4  71.1  65 4.22 1.835 19.90  1  1    4    1
+Toyota Corona       21.5   4 120.1  97 3.70 2.465 20.01  1  0    3    1
+Dodge Challenger    15.5   8 318.0 150 2.76 3.520 16.87  0  0    3    2
+AMC Javelin         15.2   8 304.0 150 3.15 3.435 17.30  0  0    3    2
+Camaro Z28          13.3   8 350.0 245 3.73 3.840 15.41  0  0    3    4
+Pontiac Firebird    19.2   8 400.0 175 3.08 3.845 17.05  0  0    3    2
+Fiat X1-9           27.3   4  79.0  66 4.08 1.935 18.90  1  1    4    1
+Porsche 914-2       26.0   4 120.3  91 4.43 2.140 16.70  0  1    5    2
+Lotus Europa        30.4   4  95.1 113 3.77 1.513 16.90  1  1    5    2
+Ford Pantera L      15.8   8 351.0 264 4.22 3.170 14.50  0  1    5    4
+Ferrari Dino        19.7   6 145.0 175 3.62 2.770 15.50  0  1    5    6
+Maserati Bora       15.0   8 301.0 335 3.54 3.570 14.60  0  1    5    8
+Volvo 142E          21.4   4 121.0 109 4.11 2.780 18.60  1  1    4    2
+> 
+> heatmap(mtcars_df)
